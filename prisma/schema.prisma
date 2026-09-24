@@ -1,0 +1,80 @@
+// Modèle de données du carnet de recherche.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  title       String   @default("")
+  /// Document Tiptap sérialisé en JSON
+  content     String   @default("{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\"}]}")
+  /// Texte brut extrait du contenu (aperçus, export)
+  contentText String   @default("")
+  /// Titre + contenu + tags, en minuscules et sans accents (recherche)
+  searchText  String   @default("")
+  /// Date de la note (modifiable), au format AAAA-MM-JJ
+  date        String
+  favorite    Boolean  @default(false)
+  important   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tags        Tag[]
+  linksFrom   NoteLink[]    @relation("source")
+  linksTo     NoteLink[]    @relation("target")
+  versions    NoteVersion[]
+  attachments Attachment[]
+
+  @@index([date])
+  @@index([updatedAt])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  notes     Note[]
+}
+
+/// Lien interne [[...]] d'une note (source) vers une autre (target)
+model NoteLink {
+  sourceId String
+  targetId String
+  source   Note   @relation("source", fields: [sourceId], references: [id], onDelete: Cascade)
+  target   Note   @relation("target", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@id([sourceId, targetId])
+  @@index([targetId])
+}
+
+/// Instantané d'une note, pour l'historique des modifications
+model NoteVersion {
+  id        String   @id @default(cuid())
+  noteId    String
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId, createdAt])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  noteId    String
+  filename  String
+  mimeType  String
+  size      Int
+  /// Nom du fichier dans data/uploads/
+  storedAs  String
+  createdAt DateTime @default(now())
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+}
