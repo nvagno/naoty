@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mon Carnet de Recherche
 
-## Getting Started
+Carnet de recherche numérique personnel : écrire, retrouver, relier ses notes.
+Tout fonctionne en local, sur votre ordinateur. Aucune donnée ne quitte la machine.
 
-First, run the development server:
+## Lancer le carnet
+
+Prérequis : Node.js 20 ou plus récent.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install          # première fois seulement
+npm run carnet       # prépare la base, compile et démarre sur http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Pour développer (rechargement à chaud) : `npm run dev`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Où sont les données ?
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Fichier | Contenu |
+| --- | --- |
+| `data/carnet.db` | base SQLite : notes, tags, liens, historique |
+| `data/uploads/` | pièces jointes |
 
-## Learn More
+Copier le dossier `data/` suffit à sauvegarder tout le carnet.
+Depuis **Paramètres**, vous pouvez aussi télécharger :
 
-To learn more about Next.js, take a look at the following resources:
+- une **sauvegarde complète** (ZIP : données + pièces jointes), réimportable ;
+- **toutes les notes en Markdown** (ZIP, un fichier par note, compatible Obsidian) ;
+- les **données en JSON** (notes, tags, liens, historique).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Chaque note s'exporte aussi seule, en Markdown ou en PDF (menu « ⋯ » de la note).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Utilisation
 
-## Deploy on Vercel
+- **Nouvelle note** : bouton, `Ctrl/⌘ + N` ou `Alt + N` (certains navigateurs réservent `Ctrl + N`).
+- **Recherche** : `Ctrl/⌘ + K`. Elle porte sur les titres, le contenu et les tags, sans tenir compte des accents ni des majuscules.
+- **Sauvegarde** : automatique, moins d'une seconde après la dernière frappe. `Ctrl/⌘ + S` enregistre immédiatement et crée un point dans l'historique.
+- **Liens entre notes** : tapez `[[`, puis choisissez une note, ou créez-la. Les notes qui pointent vers une note sont listées sous « Mentionnée dans ».
+- **Mise en forme rapide** : `# ` titre, `## ` sous-titre, `- ` liste, `1. ` liste numérotée, `> ` citation, `---` séparateur.
+- **Pièces jointes** : trombone de la barre d'outils, glisser-déposer ou coller. Les images s'insèrent dans le texte, les PDF et fichiers texte ont un aperçu.
+- **Historique** : icône horloge. Une version est conservée toutes les 10 minutes d'écriture et à chaque `Ctrl/⌘ + S`. Restaurer une version conserve la version actuelle.
+- **Favoris** (étoile) et **notes importantes** (surligneur) : les notes importantes sont mises en évidence dans les listes.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Technique
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Tiptap 3 · Prisma 7 + SQLite.
+
+```
+prisma/schema.prisma        modèle de données (Note, Tag, NoteLink, NoteVersion, Attachment)
+src/app/(carnet)/           pages : accueil, notes, favoris, tags, chronologie, paramètres
+src/app/imprimer/[id]/      version imprimable (export PDF)
+src/app/api/                API locale (notes, tags, versions, pièces jointes, export, import)
+src/components/editor/      éditeur Tiptap, barre d'outils, liens [[…]]
+src/components/note/        page d'une note : sauvegarde auto, tags, historique, pièces jointes
+src/lib/                    logique partagée (texte, recherche, dates, Markdown)
+src/lib/server/             accès aux données (Prisma), export/import, fichiers
+tests/                      tests unitaires (npm test)
+```
+
+Commandes utiles : `npm test` (tests), `npm run lint`, `npx prisma studio` (explorer la base).
