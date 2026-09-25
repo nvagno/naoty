@@ -45,3 +45,6 @@ next-env.d.ts
 # données personnelles du carnet (base SQLite et pièces jointes)
 /data/*
 !/data/.gitkeep
+
+# application Electron empaquetée
+/dist

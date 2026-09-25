@@ -2,6 +2,9 @@
   "name": "carnet-recherche",
   "version": "0.1.0",
   "private": true,
+  "description": "Carnet de recherche numérique personnel, local",
+  "author": "Ny Hasina VAGNO",
+  "main": "electron/main.mjs",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,7 +13,10 @@
     "test": "vitest run",
     "db:migrate": "prisma migrate deploy",
     "postinstall": "prisma generate",
-    "carnet": "prisma migrate deploy && next build && next start -p 3000"
+    "carnet": "prisma migrate deploy && next build && next start -p 3000",
+    "electron:prepare": "node scripts/electron-prepare.mjs",
+    "electron": "npm run electron:prepare && electron .",
+    "dist": "npm run electron:prepare && electron-builder"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",
@@ -30,12 +36,15 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^24.13.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^18.0.3",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "prisma": "^7.10.0",
@@ -51,5 +60,51 @@
     "prisma@7.10.0": true,
     "@prisma/engines@7.10.0": true,
     "esbuild@0.28.2": true
-  }
+  },
+  "build": {
+    "appId": "local.carnet-recherche",
+    "productName": "Mon Carnet de Recherche",
+    "artifactName": "carnet-recherche-${version}-${arch}.${ext}",
+    "publish": null,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "npmRebuild": false,
+    "extraResources": [
+      {
+        "from": "prisma/migrations",
+        "to": "migrations",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office",
+      "maintainer": "Ny Hasina VAGNO",
+      "syncDesktopName": true
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
+    },
+    "afterPack": "scripts/electron-after-pack.mjs"
+  },
+  "desktopName": "carnet-recherche.desktop"
 }
