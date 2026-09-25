@@ -3,12 +3,64 @@
 Carnet de recherche numérique personnel : écrire, retrouver, relier ses notes.
 Tout fonctionne en local, sur votre ordinateur. Aucune donnée ne quitte la machine.
 
-## Lancer le carnet
+## Installation
 
-Prérequis : Node.js 20 ou plus récent.
+Le carnet s'utilise de deux façons :
+
+- **application de bureau** (Electron) : une fenêtre à part, un installateur par système ;
+- **dans le navigateur**, depuis le dossier du projet.
+
+Dans les deux cas, tout reste sur votre ordinateur.
+
+### Prérequis
+
+- [Node.js](https://nodejs.org/) 22 ou plus récent (avec `npm`) ;
+- une connexion Internet lors de la première installation (téléchargement des dépendances et d'Electron) ;
+- pour l'application de bureau, des outils de compilation, au cas où aucun binaire précompilé de SQLite ne serait disponible pour votre système :
+  - **Linux** : `sudo apt install build-essential python3` (Debian, Ubuntu, Kali) ;
+  - **macOS** : `xcode-select --install` ;
+  - **Windows** : « Outils de build Visual Studio » avec la charge de travail « Développement Desktop en C++ ».
+
+Récupérez le projet puis installez les dépendances :
 
 ```bash
-npm install          # première fois seulement
+git clone <adresse-du-dépôt> carnet-recherche
+cd carnet-recherche
+npm install
+```
+
+### Application de bureau
+
+**Essayer sans installer** :
+
+```bash
+npm run electron     # compile le carnet puis l'ouvre dans une fenêtre
+```
+
+**Créer l'installateur** :
+
+```bash
+npm run dist
+```
+
+Les fichiers produits sont dans `dist/` :
+
+| Système | Fichier | Installation |
+| --- | --- | --- |
+| Linux | `carnet-recherche-<version>-x86_64.AppImage` | `chmod +x` sur le fichier puis double-clic (installez `libfuse2` si l'AppImage ne démarre pas) |
+| Linux (Debian, Ubuntu, Kali) | `carnet-recherche-<version>-amd64.deb` | `sudo apt install ./dist/carnet-recherche-<version>-amd64.deb` |
+| Windows | `carnet-recherche-<version>-x64.exe` | lancer l'installateur |
+| macOS | `carnet-recherche-<version>-<arch>.dmg` | ouvrir le DMG et glisser l'application dans *Applications* |
+
+Il faut construire l'installateur **sur le système visé** : l'application contient SQLite compilé pour ce système. On ne produit donc pas l'installateur Windows depuis Linux, par exemple.
+
+L'application n'est pas signée. Au premier lancement, Windows (SmartScreen) peut demander une confirmation (« Informations complémentaires » puis « Exécuter quand même »). Sur macOS, faites un clic droit sur l'application, puis « Ouvrir ».
+
+Une seule fenêtre du carnet peut être ouverte à la fois. Les liens web s'ouvrent dans votre navigateur habituel.
+
+### Dans le navigateur
+
+```bash
 npm run carnet       # prépare la base, compile et démarre sur http://localhost:3000
 ```
 
@@ -16,12 +68,29 @@ Pour développer (rechargement à chaud) : `npm run dev`.
 
 ## Où sont les données ?
 
+Le chemin exact du dossier des données est indiqué dans **Paramètres → Où sont mes données ?**. Dans l'application de bureau, on peut aussi passer par le menu **Fichier → Ouvrir le dossier des données**.
+
+| Utilisation | Dossier des données |
+| --- | --- |
+| Navigateur (`npm run carnet`, `npm run dev`) | `data/` dans le dossier du projet |
+| Application de bureau, Linux | `~/.config/Mon Carnet de Recherche/data/` |
+| Application de bureau, Windows | `%APPDATA%\Mon Carnet de Recherche\data\` |
+| Application de bureau, macOS | `~/Library/Application Support/Mon Carnet de Recherche/data/` |
+
+Ce dossier contient :
+
 | Fichier | Contenu |
 | --- | --- |
-| `data/carnet.db` | base SQLite : notes, tags, liens, historique |
-| `data/uploads/` | pièces jointes |
+| `carnet.db` | base SQLite : notes, tags, liens, historique |
+| `uploads/` | pièces jointes |
 
-Copier le dossier `data/` suffit à sauvegarder tout le carnet.
+Pour faire une sauvegarde complète, il suffit de copier ce dossier. Pour placer les données ailleurs, par exemple dans un dossier synchronisé, lancez l'application avec la variable d'environnement `CARNET_DATA_DIR` qui pointe vers ce dossier.
+
+**Retrouver ses notes dans l'application de bureau** : le carnet du navigateur et celui de l'application ne partagent pas le même dossier. Deux façons de transférer les notes :
+
+- dans le navigateur, **Paramètres → Sauvegarde complète**, puis dans l'application, **Paramètres → Importer / restaurer** ;
+- ou, l'application étant fermée, copiez `carnet.db` et `uploads/` du dossier `data/` du projet vers le dossier des données de l'application.
+
 Depuis **Paramètres**, vous pouvez aussi télécharger :
 
 - une **sauvegarde complète** (ZIP : données + pièces jointes), réimportable ;
@@ -44,7 +113,7 @@ Chaque note s'exporte aussi seule, en Markdown ou en PDF (menu « ⋯ » de la n
 
 ## Technique
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Tiptap 3 · Prisma 7 + SQLite.
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Tiptap 3 · Prisma 7 + SQLite · Electron.
 
 ```
 prisma/schema.prisma        modèle de données (Note, Tag, NoteLink, NoteVersion, Attachment)
@@ -56,6 +125,12 @@ src/components/note/        page d'une note : sauvegarde auto, tags, historique,
 src/lib/                    logique partagée (texte, recherche, dates, Markdown)
 src/lib/server/             accès aux données (Prisma), export/import, fichiers
 tests/                      tests unitaires (npm test)
+electron/main.mjs           application de bureau : fenêtre, menu, démarrage du serveur local
+electron/server.mjs         processus serveur : migrations de la base puis serveur Next autonome
+scripts/electron-prepare.mjs  build Next « standalone » + SQLite recompilé pour Electron
+scripts/electron-after-pack.mjs  copie du serveur dans l'application (electron-builder)
 ```
+
+L'application de bureau lance le serveur Next autonome (`.next/standalone`) sur un port local libre (`127.0.0.1`), dans un processus utilitaire d'Electron. Elle applique les migrations Prisma au démarrage, avec la même table `_prisma_migrations` que `prisma migrate deploy`. La configuration d'electron-builder se trouve dans la clé `build` de `package.json`.
 
 Commandes utiles : `npm test` (tests), `npm run lint`, `npx prisma studio` (explorer la base).
