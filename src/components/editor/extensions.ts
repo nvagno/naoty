@@ -4,6 +4,7 @@ import Image from "@tiptap/extension-image";
 import { TableKit } from "@tiptap/extension-table";
 import { Placeholder } from "@tiptap/extensions";
 import { NoteLink, type NoteLinkOptions } from "./NoteLink";
+import { LinkCard } from "./LinkCard";
 
 /** Extensions communes à l'éditeur, à l'aperçu de l'historique et à l'impression. */
 export function carnetExtensions(opts: { placeholder?: string; suggestion?: NoteLinkOptions["suggestion"] } = {}): Extensions {
@@ -22,6 +23,7 @@ export function carnetExtensions(opts: { placeholder?: string; suggestion?: Note
     }),
     Image.configure({ allowBase64: false }),
     TableKit.configure({ table: { resizable: false } }),
+    LinkCard,
     NoteLink.configure(opts.suggestion ? { suggestion: opts.suggestion } : {}),
     ...(opts.placeholder !== undefined
       ? [

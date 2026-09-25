@@ -112,6 +112,12 @@ function block(node: JSONNode, opts: MarkdownOptions): string {
       return table(node, opts);
     case "image":
       return image(node, opts);
+    case "linkCard": {
+      const a = (node.attrs ?? {}) as Record<string, string>;
+      const title = escapeText(a.title || a.url);
+      const meta = [a.authors, a.site, a.date].filter(Boolean).map(escapeText).join(" · ");
+      return [`> [${title}](${a.url})`, ...(meta ? [`> ${meta}`] : []), ...(a.description ? [`> ${escapeText(a.description)}`] : [])].join("  \n");
+    }
     default:
       return node.content ? blocks(node.content, opts) : "";
   }
