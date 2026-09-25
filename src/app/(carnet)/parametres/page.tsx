@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Archive, FileJson, FileText, Monitor, Moon, Sun, Upload } from "lucide-react";
 import { Kbd, PageHeader, useModKey } from "@/components/ui";
-import { importFile } from "@/lib/client/api";
+import { getDataDir, importFile } from "@/lib/client/api";
 import { applyTheme, readTheme, type ThemeChoice } from "@/lib/client/theme";
 
 function subscribeTheme(onChange: () => void) {
@@ -39,6 +39,13 @@ export default function SettingsPage() {
   const [importMsg, setImportMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [importing, setImporting] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const [dataDir, setDataDir] = useState<string | null>(null);
+
+  useEffect(() => {
+    getDataDir()
+      .then((r) => setDataDir(r.dir))
+      .catch(() => {});
+  }, []);
 
 
   const themes: { value: ThemeChoice; label: string; icon: React.ReactNode }[] = [
@@ -147,14 +154,17 @@ export default function SettingsPage() {
 
       <Section
         title="Où sont mes données ?"
-        description="Tout est stocké localement, sur cet ordinateur, dans le dossier data/ du projet."
+        description="Tout est stocké localement, sur cet ordinateur, dans le dossier des données :"
       >
+        <p className="mb-4 break-all">
+          <code className="rounded bg-paper-2 px-1.5 py-0.5 text-xs">{dataDir ?? "…"}</code>
+        </p>
         <ul className="space-y-1.5 text-sm text-ink-2">
           <li>
-            <code className="rounded bg-paper-2 px-1.5 py-0.5 text-xs">data/carnet.db</code> — la base SQLite (notes, tags, liens, historique)
+            <code className="rounded bg-paper-2 px-1.5 py-0.5 text-xs">carnet.db</code> — la base SQLite (notes, tags, liens, historique)
           </li>
           <li>
-            <code className="rounded bg-paper-2 px-1.5 py-0.5 text-xs">data/uploads/</code> — les pièces jointes
+            <code className="rounded bg-paper-2 px-1.5 py-0.5 text-xs">uploads/</code> — les pièces jointes
           </li>
         </ul>
         <p className="mt-3 text-xs leading-relaxed text-ink-3">

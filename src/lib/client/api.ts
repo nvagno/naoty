@@ -73,3 +73,5 @@ export function importFile(file: File) {
   form.append("file", file);
   return request<{ created: number; skipped: number }>("/api/import", { method: "POST", body: form });
 }
+
+export const getDataDir = () => request<{ dir: string }>("/api/data-dir");

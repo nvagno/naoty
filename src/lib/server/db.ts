@@ -3,12 +3,13 @@ import path from "node:path";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@/generated/prisma/client";
 
-export const DATA_DIR = path.join(process.cwd(), "data");
+/** Dossier des données : `data/` du projet, ou celui fourni par l'application Electron. */
+export const DATA_DIR = process.env.CARNET_DATA_DIR ?? path.join(process.cwd(), "data");
 export const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 
 function createClient() {
   const adapter = new PrismaBetterSqlite3({
-    url: process.env.DATABASE_URL ?? "file:./data/carnet.db",
+    url: process.env.DATABASE_URL ?? `file:${path.join(DATA_DIR, "carnet.db")}`,
   });
   return new PrismaClient({ adapter });
 }
