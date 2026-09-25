@@ -2,6 +2,7 @@
 import type { AttachmentInfo, NoteDetail, NotePatch, NoteRef, NoteSummary, TagInfo, VersionInfo } from "@/lib/types";
 import type { JSONNode } from "@/lib/text";
 import { todayKey } from "@/lib/dates";
+import type { LinkMeta } from "@/lib/linkMeta";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -61,6 +62,9 @@ export function uploadAttachment(noteId: string, file: File) {
   form.append("file", file);
   return request<AttachmentInfo>(`/api/notes/${noteId}/attachments`, { method: "POST", body: form });
 }
+
+export const fetchLinkMeta = (url: string) =>
+  request<LinkMeta & { error?: string }>(`/api/link-preview?url=${encodeURIComponent(url)}`);
 
 export const deleteAttachment = (id: string) => request<null>(`/api/attachments/${id}`, { method: "DELETE" });
 
