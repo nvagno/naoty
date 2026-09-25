@@ -8,6 +8,8 @@ import type { SuggestionProps } from "@tiptap/suggestion";
 import { carnetExtensions } from "./extensions";
 import type { NoteLinkItem } from "./NoteLink";
 import { Toolbar } from "./Toolbar";
+import { completePendingCards, insertLinkCard } from "./linkCards";
+import { asStandaloneUrl } from "@/lib/linkMeta";
 import { createNote, lookupNotes, resolveTitle, uploadAttachment } from "@/lib/client/api";
 import { fold, type JSONNode } from "@/lib/text";
 import { shortDate } from "@/lib/dates";
@@ -195,10 +197,20 @@ export function RichEditor({
       },
       handlePaste: (view, event) => {
         const files = Array.from(event.clipboardData?.files ?? []);
-        if (!files.length) return false;
-        event.preventDefault();
-        uploadFiles(files, view);
-        return true;
+        if (files.length) {
+          event.preventDefault();
+          uploadFiles(files, view);
+          return true;
+        }
+        // Adresse seule collée sur une ligne vide : fiche du lien avec ses métadonnées
+        const url = asStandaloneUrl(event.clipboardData?.getData("text/plain") ?? "");
+        const { $from, empty } = view.state.selection;
+        if (url && empty && $from.parent.type.name === "paragraph" && $from.parent.content.size === 0) {
+          event.preventDefault();
+          insertLinkCard(view, url);
+          return true;
+        }
+        return false;
       },
       handleDrop: (view, event, _slice, moved) => {
         const files = Array.from(event.dataTransfer?.files ?? []);
@@ -210,7 +222,10 @@ export function RichEditor({
       },
     },
     onUpdate: ({ editor }) => callbacks.current.onChange(editor),
-    onCreate: ({ editor }) => onReady?.(editor),
+    onCreate: ({ editor }) => {
+      completePendingCards(editor.view);
+      onReady?.(editor);
+    },
   });
 
   /** Lien saisi à la main ([[Titre]]) : on retrouve ou crée la note, puis on fixe son identifiant. */

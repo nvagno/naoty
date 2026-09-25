@@ -60,6 +60,11 @@ export function docToText(doc: JSONNode): string {
       parts.push(String(node.attrs?.title ?? ""));
       return;
     }
+    if (node.type === "linkCard") {
+      const a = node.attrs ?? {};
+      parts.push([a.title, a.authors, a.site, a.description, a.url].filter(Boolean).join(" — ") + "\n");
+      return;
+    }
     if (node.type === "hardBreak") {
       parts.push("\n");
       return;
