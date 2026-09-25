@@ -37,6 +37,7 @@ Chaque note s'exporte aussi seule, en Markdown ou en PDF (menu « ⋯ » de la n
 - **Sauvegarde** : automatique, moins d'une seconde après la dernière frappe. `Ctrl/⌘ + S` enregistre immédiatement et crée un point dans l'historique.
 - **Liens entre notes** : tapez `[[`, puis choisissez une note, ou créez-la. Les notes qui pointent vers une note sont listées sous « Mentionnée dans ».
 - **Mise en forme rapide** : `# ` titre, `## ` sous-titre, `- ` liste, `1. ` liste numérotée, `> ` citation, `---` séparateur.
+- **Liens web** : collez une adresse seule sur une ligne vide pour créer une **fiche du lien** (titre, description, site et, pour un article scientifique, auteurs, revue et date). Collée dans une phrase, l'adresse reste un lien simple. La fenêtre « Lien web » pré-remplit le titre de la page. La récupération nécessite une connexion Internet.
 - **Pièces jointes** : trombone de la barre d'outils, glisser-déposer ou coller. Les images s'insèrent dans le texte, les PDF et fichiers texte ont un aperçu.
 - **Historique** : icône horloge. Une version est conservée toutes les 10 minutes d'écriture et à chaque `Ctrl/⌘ + S`. Restaurer une version conserve la version actuelle.
 - **Favoris** (étoile) et **notes importantes** (surligneur) : les notes importantes sont mises en évidence dans les listes.

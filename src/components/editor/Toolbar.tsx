@@ -1,7 +1,7 @@
 "use client";
 
 import { useEditorState, type Editor } from "@tiptap/react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Bold,
   Brackets,
@@ -18,11 +18,15 @@ import {
   Pilcrow,
   Quote,
   Rows3,
+  SquareArrowOutUpRight,
   Strikethrough,
   Table,
   Trash2,
 } from "lucide-react";
 import { Modal, ModalHeader, useModKey } from "../ui";
+import { insertLinkCard } from "./linkCards";
+import { fetchLinkMeta } from "@/lib/client/api";
+import { asStandaloneUrl } from "@/lib/linkMeta";
 
 function Btn({
   onClick,
@@ -60,16 +64,37 @@ const Sep = () => <span className="mx-1 h-4 w-px shrink-0 bg-line" />;
 export function LinkDialog({ editor, open, onClose }: { editor: Editor; open: boolean; onClose: () => void }) {
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
+  const [textTouched, setTextTouched] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [initialised, setInitialised] = useState(false);
 
   if (open && !initialised) {
     setUrl(editor.getAttributes("link").href ?? "");
     setText("");
+    setTextTouched(false);
     setInitialised(true);
   }
   if (!open && initialised) setInitialised(false);
 
   const hasSelection = !editor.state.selection.empty || editor.isActive("link");
+  const validUrl = asStandaloneUrl(url);
+
+  // Titre de la page récupéré automatiquement pour le texte affiché
+  useEffect(() => {
+    if (!open || hasSelection || textTouched || !validUrl) return;
+    let cancelled = false;
+    const t = setTimeout(() => {
+      setFetching(true);
+      fetchLinkMeta(validUrl)
+        .then((m) => !cancelled && m.title && setText(m.title))
+        .catch(() => {})
+        .finally(() => !cancelled && setFetching(false));
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [open, hasSelection, textTouched, validUrl]);
 
   function apply(e: React.FormEvent) {
     e.preventDefault();
@@ -96,16 +121,17 @@ export function LinkDialog({ editor, open, onClose }: { editor: Editor; open: bo
     onClose();
   }
 
+  function insertCard() {
+    if (!validUrl) return;
+    onClose();
+    editor.commands.focus();
+    insertLinkCard(editor.view, validUrl);
+  }
+
   return (
     <Modal open={open} onClose={onClose} label="Lien web" width="max-w-md">
       <ModalHeader title={editor.isActive("link") ? "Modifier le lien" : "Ajouter un lien web"} onClose={onClose} />
       <form onSubmit={apply} className="space-y-3 p-5">
-        {!hasSelection && (
-          <label className="block">
-            <span className="mb-1 block text-xs text-ink-3">Texte affiché (facultatif)</span>
-            <input className="input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Article intéressant sur la méthodologie" />
-          </label>
-        )}
         <label className="block">
           <span className="mb-1 block text-xs text-ink-3">Adresse</span>
           <input
@@ -117,7 +143,24 @@ export function LinkDialog({ editor, open, onClose }: { editor: Editor; open: bo
             inputMode="url"
           />
         </label>
-        <div className="flex justify-between pt-2">
+        {!hasSelection && (
+          <label className="block">
+            <span className="mb-1 flex justify-between text-xs text-ink-3">
+              Texte affiché (facultatif)
+              {fetching && <span>récupération du titre…</span>}
+            </span>
+            <input
+              className="input"
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+                setTextTouched(true);
+              }}
+              placeholder="Article intéressant sur la méthodologie"
+            />
+          </label>
+        )}
+        <div className="flex items-center justify-between gap-2 pt-2">
           {editor.isActive("link") ? (
             <button
               type="button"
@@ -130,7 +173,16 @@ export function LinkDialog({ editor, open, onClose }: { editor: Editor; open: bo
               Retirer le lien
             </button>
           ) : (
-            <span />
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={insertCard}
+              disabled={!validUrl}
+              title="Bloc avec le titre, la description, les auteurs et le site de la page"
+            >
+              <SquareArrowOutUpRight size={14} />
+              Insérer une fiche
+            </button>
           )}
           <button type="submit" className="btn-primary">
             Valider
