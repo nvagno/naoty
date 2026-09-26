@@ -3,6 +3,7 @@ import type { AttachmentInfo, NoteDetail, NotePatch, NoteRef, NoteSummary, TagIn
 import type { JSONNode } from "@/lib/text";
 import { todayKey } from "@/lib/dates";
 import type { LinkMeta } from "@/lib/linkMeta";
+import type { Reference } from "@/lib/reference";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -31,7 +32,7 @@ export function listNotes(params: ListParams = {}) {
 
 export const getNote = (id: string) => request<NoteDetail>(`/api/notes/${id}`);
 
-export const createNote = (data: { title?: string; date?: string; tags?: string[] } = {}) =>
+export const createNote = (data: { title?: string; date?: string; tags?: string[]; content?: JSONNode } = {}) =>
   request<NoteDetail>("/api/notes", { method: "POST", body: JSON.stringify({ date: todayKey(), ...data }) });
 
 export const updateNote = (id: string, patch: NotePatch, keepalive = false) =>
@@ -65,6 +66,9 @@ export function uploadAttachment(noteId: string, file: File) {
 
 export const fetchLinkMeta = (url: string) =>
   request<LinkMeta & { error?: string }>(`/api/link-preview?url=${encodeURIComponent(url)}`);
+
+export const fetchReference = (q: string) =>
+  request<Reference & { sources: string[]; warning?: string }>(`/api/reference?q=${encodeURIComponent(q)}`);
 
 export const deleteAttachment = (id: string) => request<null>(`/api/attachments/${id}`, { method: "DELETE" });
 
