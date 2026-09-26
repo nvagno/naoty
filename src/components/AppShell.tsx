@@ -7,6 +7,7 @@ import {
   BookOpen,
   CalendarDays,
   FileText,
+  Link2,
   Menu,
   Moon,
   PanelLeft,
@@ -17,15 +18,16 @@ import {
   Sun,
   Tag,
 } from "lucide-react";
+import { NewFromLinkDialog } from "./NewFromLinkDialog";
 import { SearchModal } from "./SearchModal";
 import { Kbd, useModKey } from "./ui";
 import { createNote } from "@/lib/client/api";
 import { applyTheme, isDark, readTheme } from "@/lib/client/theme";
 import { emit, SAVE_EVENT } from "@/lib/client/events";
 
-type CarnetContext = { openSearch: () => void; newNote: () => void };
+type CarnetContext = { openSearch: () => void; newNote: () => void; newFromLink: () => void };
 
-const Ctx = createContext<CarnetContext>({ openSearch: () => {}, newNote: () => {} });
+const Ctx = createContext<CarnetContext>({ openSearch: () => {}, newNote: () => {}, newFromLink: () => {} });
 
 export const useCarnet = () => useContext(Ctx);
 
@@ -122,6 +124,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [fromLinkOpen, setFromLinkOpen] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const creating = useRef(false);
 
@@ -137,6 +140,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [router]);
 
   const openSearch = useCallback(() => setSearchOpen(true), []);
+  const newFromLink = useCallback(() => setFromLinkOpen(true), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -170,7 +174,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const mod = useModKey();
 
   return (
-    <Ctx.Provider value={{ openSearch, newNote }}>
+    <Ctx.Provider value={{ openSearch, newNote, newFromLink }}>
       <div className="flex min-h-dvh">
         <aside className="sidebar no-print sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-line bg-paper-2 md:block">
           <Sidebar />
@@ -214,6 +218,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <Kbd>{mod} K</Kbd>
                   </span>
                 </button>
+                <button onClick={newFromLink} className="icon-btn shrink-0" aria-label="Nouvelle note depuis un lien" title="Nouvelle note depuis un lien (article, DOI, arXiv)">
+                  <Link2 size={16} />
+                </button>
                 <button onClick={newNote} className="btn-primary shrink-0 py-1.5" title={`Nouvelle note (${mod}+N ou Alt+N)`}>
                   <Plus size={16} />
                   <span className="hidden sm:inline">Nouvelle note</span>
@@ -225,6 +232,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </div>
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <NewFromLinkDialog open={fromLinkOpen} onClose={() => setFromLinkOpen(false)} />
     </Ctx.Provider>
   );
 }

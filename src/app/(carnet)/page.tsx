@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Plus, Search, X } from "lucide-react";
+import { Link2, Plus, Search, X } from "lucide-react";
 import { useCarnet } from "@/components/AppShell";
 import { NotesByDay } from "@/components/NoteList";
 import { EmptyState, Kbd, Spinner, useModKey } from "@/components/ui";
@@ -16,7 +16,7 @@ const RECENT = 30;
 const noopSubscribe = () => () => {};
 
 export default function HomePage() {
-  const { newNote } = useCarnet();
+  const { newNote, newFromLink } = useCarnet();
   // Page pré-rendue : la date du jour est calculée dans le navigateur, jamais au moment du build.
   const today = useSyncExternalStore(noopSubscribe, () => longDate(todayKey()), () => "");
   const mod = useModKey();
@@ -57,6 +57,10 @@ export default function HomePage() {
         <button onClick={newNote} className="btn-primary px-4 py-2.5" title={`${mod}+N ou Alt+N`}>
           <Plus size={17} />
           Nouvelle note
+        </button>
+        <button onClick={newFromLink} className="btn-outline px-4 py-2.5" title="Article, livre ou page web : lien, DOI ou arXiv">
+          <Link2 size={16} />
+          Depuis un lien
         </button>
         <label className="relative flex flex-1 items-center">
           <Search size={16} className="pointer-events-none absolute left-3.5 text-ink-3" />

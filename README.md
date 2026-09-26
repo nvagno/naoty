@@ -1,7 +1,7 @@
 # Mon Carnet de Recherche
 
 Carnet de recherche numérique personnel : écrire, retrouver, relier ses notes.
-Tout fonctionne en local, sur votre ordinateur. Aucune donnée ne quitte la machine.
+Tout fonctionne en local, sur votre ordinateur. Vos notes ne quittent jamais la machine : seules les adresses et DOI que vous demandez à récupérer (fiches de lien, note depuis un lien) sont envoyés au site concerné et aux bases bibliographiques ouvertes.
 
 ## Installation
 
@@ -107,6 +107,7 @@ Chaque note s'exporte aussi seule, en Markdown ou en PDF (menu « ⋯ » de la n
 - **Liens entre notes** : tapez `[[`, puis choisissez une note, ou créez-la. Les notes qui pointent vers une note sont listées sous « Mentionnée dans ».
 - **Mise en forme rapide** : `# ` titre, `## ` sous-titre, `- ` liste, `1. ` liste numérotée, `> ` citation, `---` séparateur.
 - **Liens web** : collez une adresse seule sur une ligne vide pour créer une **fiche du lien** (titre, description, site et, pour un article scientifique, auteurs, revue et date). Collée dans une phrase, l'adresse reste un lien simple. La fenêtre « Lien web » pré-remplit le titre de la page. La récupération nécessite une connexion Internet.
+- **Note depuis un lien** : bouton « Depuis un lien » de l'accueil, ou icône lien à côté de « Nouvelle note ». Saisissez l'adresse d'un article ou d'une page, un DOI (`10.…`) ou un identifiant arXiv. Le carnet récupère le titre, les auteurs, la date, la revue (volume, numéro, pages), l'éditeur, le DOI, le résumé, les mots-clés et le lien du PDF, puis crée une note de lecture. Cette note contient une fiche du lien, la référence, une citation mise en forme, le résumé et une section « Notes de lecture ». Les informations viennent des métadonnées de la page (balises `citation_*`, Dublin Core, JSON-LD) et des bases ouvertes Crossref, DataCite, OpenAlex et arXiv. Les notices PubMed sont lues via OpenAlex. Si le DOI ou l'adresse figure déjà dans une note, la fenêtre l'indique. Certains sites bloquent la lecture automatique (JSTOR, Cairn…) : utilisez alors le DOI de l'article.
 - **Pièces jointes** : trombone de la barre d'outils, glisser-déposer ou coller. Les images s'insèrent dans le texte, les PDF et fichiers texte ont un aperçu.
 - **Historique** : icône horloge. Une version est conservée toutes les 10 minutes d'écriture et à chaque `Ctrl/⌘ + S`. Restaurer une version conserve la version actuelle.
 - **Favoris** (étoile) et **notes importantes** (surligneur) : les notes importantes sont mises en évidence dans les listes.
