@@ -23,7 +23,7 @@ export function decodeEntities(s: string): string {
   });
 }
 
-function clean(s: string | undefined, max = 400): string {
+export function clean(s: string | undefined, max = 400): string {
   if (!s) return "";
   const text = decodeEntities(s).replace(/\s+/g, " ").trim();
   return text.length > max ? text.slice(0, max - 1).trimEnd() + "…" : text;
@@ -37,16 +37,22 @@ function attributes(tag: string): Record<string, string> {
   return attrs;
 }
 
-/** Lit les balises <meta> et <title> d'une page HTML. */
-export function parseLinkMeta(html: string, url: string): LinkMeta {
-  const head = html.slice(0, 500_000);
+/** Balises <meta> d'une page, par nom en minuscules (property, name ou itemprop). */
+export function metaTags(html: string): Map<string, string[]> {
   const meta = new Map<string, string[]>();
-  for (const m of head.matchAll(/<meta\b[^>]*>/gi)) {
+  for (const m of html.matchAll(/<meta\b[^>]*>/gi)) {
     const a = attributes(m[0]);
     const key = (a.property ?? a.name ?? a.itemprop ?? "").toLowerCase();
     if (!key || a.content === undefined) continue;
     meta.set(key, [...(meta.get(key) ?? []), a.content]);
   }
+  return meta;
+}
+
+/** Lit les balises <meta> et <title> d'une page HTML. */
+export function parseLinkMeta(html: string, url: string): LinkMeta {
+  const head = html.slice(0, 500_000);
+  const meta = metaTags(head);
   const first = (...keys: string[]) => {
     for (const k of keys) {
       const v = meta.get(k)?.find((x) => x.trim());
