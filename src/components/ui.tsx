@@ -40,7 +40,9 @@ export function Modal({
     window.addEventListener("keydown", onKey, true);
     // Focus sur le premier champ, sinon sur le panneau
     requestAnimationFrame(() => {
-      const target = panel.current?.querySelector<HTMLElement>("[data-autofocus], input, textarea, button");
+      const target =
+        panel.current?.querySelector<HTMLElement>("[data-autofocus]") ??
+        panel.current?.querySelector<HTMLElement>("input, textarea, button");
       (target ?? panel.current)?.focus();
     });
     return () => {
