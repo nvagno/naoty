@@ -48,3 +48,6 @@ next-env.d.ts
 
 # application Electron empaquetée
 /dist
+
+# polices d’Excalidraw copiées à l’installation (scripts/copy-excalidraw-assets.mjs)
+/public/excalidraw

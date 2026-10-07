@@ -107,3 +107,10 @@ describe("tableaux avec images", () => {
     expect(docToMarkdown(doc)).toContain("| x<br>![](i.png) |");
   });
 });
+
+describe("dessins", () => {
+  it("signale le dessin et reprend ses textes", () => {
+    const drawing: JSONNode = { type: "drawing", attrs: { elements: [{ type: "text", text: "Étape *1*" }, { type: "ellipse" }] } };
+    expect(docToMarkdown({ type: "doc", content: [drawing, { type: "drawing" }] })).toBe("*[Dessin]* Étape \\*1\\*\n\n*[Dessin]*");
+  });
+});

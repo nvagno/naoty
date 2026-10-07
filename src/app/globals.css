@@ -470,3 +470,46 @@
     break-inside: avoid;
   }
 }
+
+/* ——— Dessin (Excalidraw) ——— */
+.prose-carnet .drawing {
+  margin: 1.2em 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  transition: border-color 120ms;
+}
+
+.prose-carnet .drawing:hover {
+  border-color: color-mix(in srgb, var(--ink-3) 60%, transparent);
+}
+
+.prose-carnet .drawing.ProseMirror-selectednode {
+  outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.prose-carnet .drawing-svg svg {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  height: auto;
+  margin: 0 auto;
+}
+
+.prose-carnet .drawing-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 2em 1em;
+  font-family: var(--font-sans);
+  font-size: 0.85em;
+  color: var(--ink-3);
+}
+
+@media print {
+  .prose-carnet .drawing {
+    break-inside: avoid;
+    border: none;
+  }
+}

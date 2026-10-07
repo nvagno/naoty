@@ -10,6 +10,16 @@ export type JSONNode = {
 
 export const EMPTY_DOC: JSONNode = { type: "doc", content: [{ type: "paragraph" }] };
 
+/** Textes écrits dans un dessin (nœud `drawing`, éléments Excalidraw), dans l'ordre du dessin. */
+export function drawingTexts(node: JSONNode): string[] {
+  const elements = node.attrs?.elements;
+  if (!Array.isArray(elements)) return [];
+  return elements
+    .filter((e) => e && e.type === "text" && !e.isDeleted && typeof e.text === "string")
+    .map((e) => (e.text as string).replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
 const COMBINING_MARKS = /[̀-ͯ]/g;
 
 /**
@@ -63,6 +73,10 @@ export function docToText(doc: JSONNode): string {
     if (node.type === "linkCard") {
       const a = node.attrs ?? {};
       parts.push([a.title, a.authors, a.site, a.description, a.url].filter(Boolean).join(" — ") + "\n");
+      return;
+    }
+    if (node.type === "drawing") {
+      parts.push(drawingTexts(node).join("\n") + "\n");
       return;
     }
     if (node.type === "hardBreak") {

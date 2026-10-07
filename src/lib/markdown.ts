@@ -1,5 +1,5 @@
 // Conversion d'un document Tiptap (JSON) en Markdown lisible.
-import type { JSONNode } from "./text";
+import { drawingTexts, type JSONNode } from "./text";
 
 export type MarkdownOptions = {
   /** Réécrit l'URL des images (ex. vers un dossier local dans une archive). */
@@ -117,6 +117,10 @@ function block(node: JSONNode, opts: MarkdownOptions): string {
       const title = escapeText(a.title || a.url);
       const meta = [a.authors, a.site, a.date].filter(Boolean).map(escapeText).join(" · ");
       return [`> [${title}](${a.url})`, ...(meta ? [`> ${meta}`] : []), ...(a.description ? [`> ${escapeText(a.description)}`] : [])].join("  \n");
+    }
+    case "drawing": {
+      const texts = drawingTexts(node).map(escapeText);
+      return "*[Dessin]*" + (texts.length ? " " + texts.join(" · ") : "");
     }
     default:
       return node.content ? blocks(node.content, opts) : "";
