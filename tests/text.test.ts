@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSearchText,
   docToText,
+  drawingTexts,
   excerpt,
   extractAttachmentIds,
   extractNoteLinks,
@@ -102,5 +103,31 @@ describe("normalizeTag", () => {
     expect(normalizeTag("  #Idée ")).toBe("idée");
     expect(normalizeTag("à vérifier")).toBe("à-vérifier");
     expect(normalizeTag("##")).toBe("");
+  });
+});
+
+describe("dessins", () => {
+  const drawing: JSONNode = {
+    type: "drawing",
+    attrs: {
+      elements: [
+        { type: "rectangle", id: "r" },
+        { type: "text", id: "a", text: "Hypothèse\nprincipale" },
+        { type: "text", id: "b", text: "effacé", isDeleted: true },
+        { type: "text", id: "c", text: "  " },
+        { type: "arrow", id: "f" },
+        { type: "text", id: "d", text: "Terrain" },
+      ],
+    },
+  };
+
+  it("extrait les textes visibles du dessin", () => {
+    expect(drawingTexts(drawing)).toEqual(["Hypothèse principale", "Terrain"]);
+    expect(drawingTexts({ type: "drawing" })).toEqual([]);
+  });
+
+  it("inclut les textes du dessin dans le texte brut", () => {
+    const d: JSONNode = { type: "doc", content: [drawing, { type: "paragraph", content: [{ type: "text", text: "Suite" }] }] };
+    expect(docToText(d)).toBe("Hypothèse principale\nTerrain\nSuite");
   });
 });

@@ -24,9 +24,15 @@ export function PrintView({ id }: { id: string }) {
 
   useEffect(() => {
     if (!ready) return;
-    // On laisse aux images le temps de se charger avant d'ouvrir la boîte d'impression.
+    // On laisse aux images et aux aperçus des dessins le temps de se charger avant d'ouvrir la boîte d'impression.
     const imgs = Array.from(document.images);
-    Promise.all(imgs.map((img) => (img.complete ? null : new Promise((r) => (img.onload = img.onerror = r))))).then(() =>
+    const drawings = new Promise<void>((resolve) => {
+      const started = Date.now();
+      const check = () =>
+        !document.querySelector("[data-drawing-pending]") || Date.now() - started > 8000 ? resolve() : setTimeout(check, 100);
+      check();
+    });
+    Promise.all([...imgs.map((img) => (img.complete ? null : new Promise((r) => (img.onload = img.onerror = r)))), drawings]).then(() =>
       setTimeout(() => window.print(), 150),
     );
   }, [ready]);

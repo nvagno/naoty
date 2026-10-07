@@ -15,6 +15,7 @@ import {
   ListOrdered,
   Minus,
   Paperclip,
+  PenTool,
   Pilcrow,
   Quote,
   Rows3,
@@ -262,6 +263,9 @@ export function Toolbar({ editor, onAttach }: { editor: Editor; onAttach: () => 
         </Btn>
         <Btn label="Tableau" active={s.table} onClick={() => c().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
           <Table size={15} />
+        </Btn>
+        <Btn label="Dessin" onClick={() => c().insertDrawing().run()}>
+          <PenTool size={15} />
         </Btn>
         <Btn label="Joindre un fichier ou une image" onClick={onAttach}>
           <Paperclip size={15} />
