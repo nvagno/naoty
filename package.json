@@ -105,7 +105,10 @@
     },
     "mac": {
       "target": "dmg",
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Le carnet utilise le micro pour enregistrer des vocaux dans les notes."
+      }
     },
     "afterPack": "scripts/electron-after-pack.mjs"
   },

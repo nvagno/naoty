@@ -100,3 +100,5 @@ export function createDigest(file: File, attach: boolean, signal?: AbortSignal) 
   form.append("attach", attach ? "1" : "0");
   return request<{ id: string }>("/api/digest", { method: "POST", body: form, signal });
 }
+
+export const transcribeAttachment = (id: string) => request<{ text: string }>(`/api/attachments/${id}/transcribe`, { method: "POST" });

@@ -79,6 +79,10 @@ export function docToText(doc: JSONNode): string {
       parts.push(drawingTexts(node).join("\n") + "\n");
       return;
     }
+    if (node.type === "audioClip") {
+      parts.push(`${node.attrs?.title || "Vocal"}\n`);
+      return;
+    }
     if (node.type === "hardBreak") {
       parts.push("\n");
       return;

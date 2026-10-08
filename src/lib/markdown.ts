@@ -2,7 +2,7 @@
 import { drawingTexts, type JSONNode } from "./text";
 
 export type MarkdownOptions = {
-  /** Réécrit l'URL des images (ex. vers un dossier local dans une archive). */
+  /** Réécrit l'URL des images et des vocaux (ex. vers un dossier local dans une archive). */
   resolveImage?: (src: string) => string;
 };
 
@@ -117,6 +117,11 @@ function block(node: JSONNode, opts: MarkdownOptions): string {
       const title = escapeText(a.title || a.url);
       const meta = [a.authors, a.site, a.date].filter(Boolean).map(escapeText).join(" · ");
       return [`> [${title}](${a.url})`, ...(meta ? [`> ${meta}`] : []), ...(a.description ? [`> ${escapeText(a.description)}`] : [])].join("  \n");
+    }
+    case "audioClip": {
+      const src = String(node.attrs?.src ?? "");
+      const title = escapeText(String(node.attrs?.title || "Vocal"));
+      return `*[Vocal]* [${title}](${opts.resolveImage ? opts.resolveImage(src) : src})`;
     }
     case "drawing": {
       const texts = drawingTexts(node).map(escapeText);

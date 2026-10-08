@@ -513,3 +513,29 @@
     border: none;
   }
 }
+
+/* ——— Enregistrement vocal ——— */
+.prose-carnet .audio-clip {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.6em 0.8em;
+  margin: 1em 0;
+  font-family: var(--font-sans);
+  background: var(--paper);
+}
+
+.prose-carnet .audio-clip.ProseMirror-selectednode {
+  outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.prose-carnet .audio-clip-label {
+  margin-bottom: 0.4em;
+  color: var(--ink-3);
+  font-size: 0.78em;
+}
+
+.prose-carnet .audio-clip audio {
+  display: block;
+  width: 100%;
+  height: 2.25rem;
+}

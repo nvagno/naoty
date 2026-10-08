@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, Download, File, FileImage, FileText, Trash2 } from "lucide-react";
+import { ChevronDown, Download, File, FileAudio, FileImage, FileText, Trash2 } from "lucide-react";
 import type { AttachmentInfo } from "@/lib/types";
 import { ConfirmDialog } from "../ui";
 import { deleteAttachment } from "@/lib/client/api";
@@ -14,6 +14,7 @@ function formatSize(bytes: number) {
 
 const isPdf = (a: AttachmentInfo) => a.mimeType === "application/pdf";
 const isImage = (a: AttachmentInfo) => a.mimeType.startsWith("image/") && a.mimeType !== "image/svg+xml";
+const isAudio = (a: AttachmentInfo) => a.mimeType.startsWith("audio/");
 const isText = (a: AttachmentInfo) => /^text\/(plain|markdown|csv)$/.test(a.mimeType);
 
 function TextPreview({ url }: { url: string }) {
@@ -36,9 +37,9 @@ function TextPreview({ url }: { url: string }) {
 }
 
 function AttachmentRow({ a, onDelete }: { a: AttachmentInfo; onDelete: () => void }) {
-  const previewable = isPdf(a) || isImage(a) || isText(a);
+  const previewable = isPdf(a) || isImage(a) || isText(a) || isAudio(a);
   const [open, setOpen] = useState(isPdf(a));
-  const Icon = isImage(a) ? FileImage : isPdf(a) || isText(a) ? FileText : File;
+  const Icon = isImage(a) ? FileImage : isAudio(a) ? FileAudio : isPdf(a) || isText(a) ? FileText : File;
   return (
     <li className="rounded-lg border border-line">
       <div className="flex items-center gap-3 px-3 py-2">
@@ -67,6 +68,7 @@ function AttachmentRow({ a, onDelete }: { a: AttachmentInfo; onDelete: () => voi
             <img src={a.url} alt={a.filename} className="mx-auto max-h-[60vh] rounded-md" />
           )}
           {isText(a) && <TextPreview url={a.url} />}
+          {isAudio(a) && <audio src={a.url} controls preload="metadata" className="h-9 w-full" />}
         </div>
       )}
     </li>

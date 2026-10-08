@@ -13,6 +13,7 @@ import {
   Link2,
   List,
   ListOrdered,
+  Mic,
   Minus,
   Paperclip,
   PenTool,
@@ -194,7 +195,7 @@ export function LinkDialog({ editor, open, onClose }: { editor: Editor; open: bo
   );
 }
 
-export function Toolbar({ editor, onAttach }: { editor: Editor; onAttach: () => void }) {
+export function Toolbar({ editor, onAttach, onRecord }: { editor: Editor; onAttach: () => void; onRecord: () => void }) {
   const [linkOpen, setLinkOpen] = useState(false);
   const mod = useModKey();
   const s = useEditorState({
@@ -266,6 +267,9 @@ export function Toolbar({ editor, onAttach }: { editor: Editor; onAttach: () => 
         </Btn>
         <Btn label="Dessin" onClick={() => c().insertDrawing().run()}>
           <PenTool size={15} />
+        </Btn>
+        <Btn label="Enregistrer un vocal" onClick={onRecord}>
+          <Mic size={15} />
         </Btn>
         <Btn label="Joindre un fichier ou une image" onClick={onAttach}>
           <Paperclip size={15} />
