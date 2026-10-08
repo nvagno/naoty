@@ -79,3 +79,24 @@ export function importFile(file: File) {
 }
 
 export const getDataDir = () => request<{ dir: string }>("/api/data-dir");
+
+export type AlbertSettings = {
+  configured: boolean;
+  keyHint: string;
+  fromEnv: boolean;
+  model: string;
+  baseUrl: string;
+  models?: { id: string; aliases: string[]; maxContext: number }[];
+  modelsError?: string;
+};
+
+export const getAlbertSettings = (withModels = false) => request<AlbertSettings>(`/api/albert${withModels ? "?models=1" : ""}`);
+export const saveAlbertSettings = (patch: { apiKey?: string; model?: string }) =>
+  request<AlbertSettings>("/api/albert", { method: "PUT", body: JSON.stringify(patch) });
+
+export function createDigest(file: File, attach: boolean, signal?: AbortSignal) {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("attach", attach ? "1" : "0");
+  return request<{ id: string }>("/api/digest", { method: "POST", body: form, signal });
+}

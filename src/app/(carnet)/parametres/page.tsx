@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Archive, FileJson, FileText, Monitor, Moon, Sun, Upload } from "lucide-react";
 import { Kbd, PageHeader, useModKey } from "@/components/ui";
-import { getDataDir, importFile } from "@/lib/client/api";
+import { getAlbertSettings, getDataDir, importFile, saveAlbertSettings, type AlbertSettings } from "@/lib/client/api";
 import { applyTheme, readTheme, type ThemeChoice } from "@/lib/client/theme";
 
 function subscribeTheme(onChange: () => void) {
@@ -30,6 +30,113 @@ function ExportLink({ href, icon, title, detail }: { href: string; icon: React.R
         <span className="block text-xs leading-relaxed text-ink-3">{detail}</span>
       </span>
     </a>
+  );
+}
+
+/** Clé d'API et modèle d'Albert, utilisés pour les fiches de révision. */
+function AlbertSection() {
+  const [settings, setSettings] = useState<AlbertSettings | null>(null);
+  const [apiKey, setApiKey] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => {
+    getAlbertSettings(true)
+      .then(setSettings)
+      .catch(() => {});
+  }, []);
+
+  async function save(patch: { apiKey?: string; model?: string }, done: string) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveAlbertSettings(patch);
+      const next = await getAlbertSettings(true);
+      setSettings(next);
+      setApiKey("");
+      setMessage(next.modelsError ? { ok: false, text: next.modelsError } : { ok: true, text: done });
+    } catch (e) {
+      setMessage({ ok: false, text: e instanceof Error ? e.message : "Enregistrement impossible." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const models = settings?.models ?? [];
+  // Le modèle enregistré peut être un alias (« openweight-medium ») : on affiche le modèle correspondant.
+  const current = models.find((m) => m.id === settings?.model || m.aliases.includes(settings?.model ?? ""))?.id;
+
+  return (
+    <Section
+      title="Assistant IA (Albert)"
+      description="Les fiches de révision « Depuis un document » sont rédigées par Albert API. Le texte du document est alors envoyé à Albert ; le reste du carnet ne quitte pas cet ordinateur."
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (apiKey.trim()) save({ apiKey }, "Clé enregistrée.");
+        }}
+        className="max-w-xl space-y-2"
+      >
+        <label className="block">
+          <span className="mb-1 block text-xs text-ink-3">
+            Clé d&apos;API
+            {settings?.configured && (
+              <> · enregistrée (…{settings.keyHint}){settings.fromEnv && " depuis la variable ALBERT_API_KEY"}</>
+            )}
+          </span>
+          <div className="flex gap-2">
+            <input
+              className="input"
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder={settings?.configured ? "Remplacer la clé…" : "Collez votre clé d'API Albert"}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <button type="submit" className="btn-outline shrink-0" disabled={saving || !apiKey.trim()}>
+              Enregistrer
+            </button>
+            {settings?.configured && !settings.fromEnv && (
+              <button type="button" className="btn-ghost shrink-0" disabled={saving} onClick={() => save({ apiKey: "" }, "Clé supprimée.")}>
+                Supprimer
+              </button>
+            )}
+          </div>
+        </label>
+      </form>
+
+      {settings?.configured && (
+        <label className="mt-4 block max-w-xl">
+          <span className="mb-1 block text-xs text-ink-3">Modèle</span>
+          <select
+            className="input"
+            value={current ?? settings.model}
+            disabled={saving || !models.length}
+            onChange={(e) => save({ model: e.target.value }, "Modèle enregistré.")}
+          >
+            {!current && <option value={settings.model}>{settings.model}</option>}
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.id}
+                {m.maxContext ? ` — ${Math.round(m.maxContext / 1000)} k jetons` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      {message && (
+        <p className={`mt-3 text-sm ${message.ok ? "text-ink-2" : "text-danger"}`} role="status">
+          {message.text}
+        </p>
+      )}
+      <p className="mt-4 max-w-xl text-xs leading-relaxed text-ink-3">
+        La clé est conservée dans le fichier <code>albert.json</code> du dossier des données, et n&apos;est jamais incluse dans les
+        exports.
+      </p>
+    </Section>
   );
 }
 
@@ -96,6 +203,8 @@ export default function SettingsPage() {
           ))}
         </div>
       </Section>
+
+      <AlbertSection />
 
       <Section
         title="Exporter le carnet"
@@ -165,6 +274,9 @@ export default function SettingsPage() {
           </li>
           <li>
             <code className="rounded bg-paper-2 px-1.5 py-0.5 text-xs">uploads/</code> — les pièces jointes
+          </li>
+          <li>
+            <code className="rounded bg-paper-2 px-1.5 py-0.5 text-xs">albert.json</code> — la clé d&apos;API Albert, si elle est renseignée
           </li>
         </ul>
         <p className="mt-3 text-xs leading-relaxed text-ink-3">
