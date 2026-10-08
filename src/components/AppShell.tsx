@@ -7,6 +7,7 @@ import {
   BookOpen,
   CalendarDays,
   FileText,
+  FileUp,
   Link2,
   Menu,
   Moon,
@@ -18,6 +19,7 @@ import {
   Sun,
   Tag,
 } from "lucide-react";
+import { NewFromDocumentDialog } from "./NewFromDocumentDialog";
 import { NewFromLinkDialog } from "./NewFromLinkDialog";
 import { SearchModal } from "./SearchModal";
 import { Kbd, useModKey } from "./ui";
@@ -25,9 +27,9 @@ import { createNote } from "@/lib/client/api";
 import { applyTheme, isDark, readTheme } from "@/lib/client/theme";
 import { emit, SAVE_EVENT } from "@/lib/client/events";
 
-type CarnetContext = { openSearch: () => void; newNote: () => void; newFromLink: () => void };
+type CarnetContext = { openSearch: () => void; newNote: () => void; newFromLink: () => void; newFromDocument: () => void };
 
-const Ctx = createContext<CarnetContext>({ openSearch: () => {}, newNote: () => {}, newFromLink: () => {} });
+const Ctx = createContext<CarnetContext>({ openSearch: () => {}, newNote: () => {}, newFromLink: () => {}, newFromDocument: () => {} });
 
 export const useCarnet = () => useContext(Ctx);
 
@@ -125,6 +127,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const [fromLinkOpen, setFromLinkOpen] = useState(false);
+  const [fromDocumentOpen, setFromDocumentOpen] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const creating = useRef(false);
 
@@ -141,6 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const newFromLink = useCallback(() => setFromLinkOpen(true), []);
+  const newFromDocument = useCallback(() => setFromDocumentOpen(true), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -174,7 +178,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const mod = useModKey();
 
   return (
-    <Ctx.Provider value={{ openSearch, newNote, newFromLink }}>
+    <Ctx.Provider value={{ openSearch, newNote, newFromLink, newFromDocument }}>
       <div className="flex min-h-dvh">
         <aside className="sidebar no-print sticky top-0 hidden h-dvh w-60 shrink-0 border-r border-line bg-paper-2 md:block">
           <Sidebar />
@@ -221,6 +225,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <button onClick={newFromLink} className="icon-btn shrink-0" aria-label="Nouvelle note depuis un lien" title="Nouvelle note depuis un lien (article, DOI, arXiv)">
                   <Link2 size={16} />
                 </button>
+                <button
+                  onClick={newFromDocument}
+                  className="icon-btn shrink-0"
+                  aria-label="Fiche de révision depuis un document"
+                  title="Fiche de révision depuis un document (Albert)"
+                >
+                  <FileUp size={16} />
+                </button>
                 <button onClick={newNote} className="btn-primary shrink-0 py-1.5" title={`Nouvelle note (${mod}+N ou Alt+N)`}>
                   <Plus size={16} />
                   <span className="hidden sm:inline">Nouvelle note</span>
@@ -233,6 +245,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
       <NewFromLinkDialog open={fromLinkOpen} onClose={() => setFromLinkOpen(false)} />
+      <NewFromDocumentDialog open={fromDocumentOpen} onClose={() => setFromDocumentOpen(false)} />
     </Ctx.Provider>
   );
 }
