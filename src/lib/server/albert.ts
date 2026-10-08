@@ -9,6 +9,10 @@ import { DATA_DIR } from "./db";
 export const ALBERT_DEFAULT_URL = "https://albert.api.etalab.gouv.fr/v1";
 /** Mistral Small 3.2 (24B) : bon rédacteur en français, contexte de 128 000 jetons. */
 export const ALBERT_DEFAULT_MODEL = "openweight-medium";
+/** Whisper large v3, pour la transcription des enregistrements vocaux. */
+export const ALBERT_AUDIO_MODEL = "openweight-audio";
+/** Taille maximale d'un fichier audio accepté par Albert. */
+export const ALBERT_MAX_AUDIO_BYTES = 20 * 1024 * 1024;
 
 const CONFIG_FILE = path.join(DATA_DIR, "albert.json");
 
@@ -80,7 +84,12 @@ async function call<T>(config: AlbertConfig, route: string, init: RequestInit & 
     res = await fetch(`${config.baseUrl}${route}`, {
       ...init,
       signal: AbortSignal.any(signals),
-      headers: { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json", Accept: "application/json" },
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        Accept: "application/json",
+        // Un envoi de fichier (FormData) fixe lui-même son type.
+        ...(typeof init.body === "string" ? { "Content-Type": "application/json" } : {}),
+      },
     });
   } catch (e) {
     if (init.signal?.aborted) throw new AlbertError("Demande annulée.", 499);
@@ -136,4 +145,21 @@ export async function albertChat(
   const content = data.choices?.[0]?.message?.content?.trim();
   if (!content) throw new AlbertError("Albert a renvoyé une réponse vide.");
   return content;
+}
+
+/** Texte prononcé dans un enregistrement audio (Whisper). */
+export async function albertTranscribe(config: AlbertConfig, audio: Blob, filename: string, opts: { signal?: AbortSignal } = {}): Promise<string> {
+  if (audio.size > ALBERT_MAX_AUDIO_BYTES) throw new AlbertError("Enregistrement trop long pour la transcription (20 Mo maximum).", 413);
+  const form = new FormData();
+  form.append("file", audio, filename);
+  form.append("model", ALBERT_AUDIO_MODEL);
+  form.append("language", "fr");
+  form.append("response_format", "json");
+  const data = await call<{ text?: string }>(config, "/audio/transcriptions", {
+    method: "POST",
+    body: form,
+    signal: opts.signal,
+    timeoutMs: 5 * 60_000,
+  });
+  return data.text?.trim() ?? "";
 }

@@ -6,6 +6,7 @@ import { Placeholder } from "@tiptap/extensions";
 import { NoteLink, type NoteLinkOptions } from "./NoteLink";
 import { LinkCard } from "./LinkCard";
 import { Drawing } from "./Drawing";
+import { AudioClip } from "./AudioClip";
 
 /** Extensions communes à l'éditeur, à l'aperçu de l'historique et à l'impression. */
 export function carnetExtensions(opts: { placeholder?: string; suggestion?: NoteLinkOptions["suggestion"] } = {}): Extensions {
@@ -26,6 +27,7 @@ export function carnetExtensions(opts: { placeholder?: string; suggestion?: Note
     TableKit.configure({ table: { resizable: false } }),
     LinkCard,
     Drawing,
+    AudioClip,
     NoteLink.configure(opts.suggestion ? { suggestion: opts.suggestion } : {}),
     ...(opts.placeholder !== undefined
       ? [

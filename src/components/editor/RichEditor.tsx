@@ -8,6 +8,7 @@ import type { SuggestionProps } from "@tiptap/suggestion";
 import { carnetExtensions } from "./extensions";
 import type { NoteLinkItem } from "./NoteLink";
 import { Toolbar } from "./Toolbar";
+import { VoiceRecorder } from "./VoiceRecorder";
 import { completePendingCards, insertLinkCard } from "./linkCards";
 import { asStandaloneUrl } from "@/lib/linkMeta";
 import { createNote, lookupNotes, resolveTitle, uploadAttachment } from "@/lib/client/api";
@@ -87,6 +88,7 @@ export function RichEditor({
   const [suggest, setSuggest] = useState<SuggestState | null>(null);
   const suggestRef = useRef<SuggestState | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const [recorderOpen, setRecorderOpen] = useState(false);
   const callbacks = useRef({ onChange, onAttachment, onOpenNote, onError });
   useEffect(() => {
     callbacks.current = { onChange, onAttachment, onOpenNote, onError };
@@ -250,7 +252,7 @@ export function RichEditor({
   return (
     <div>
       <div className="no-print sticky top-14 z-20 -mx-2 mb-6 border-b border-line bg-paper/95 px-2 backdrop-blur">
-        <Toolbar editor={editor} onAttach={() => fileInput.current?.click()} />
+        <Toolbar editor={editor} onAttach={() => fileInput.current?.click()} onRecord={() => setRecorderOpen(true)} />
       </div>
       <input
         ref={fileInput}
@@ -264,6 +266,14 @@ export function RichEditor({
         }}
       />
       <EditorContent editor={editor} />
+      <VoiceRecorder
+        editor={editor}
+        noteId={noteId}
+        open={recorderOpen}
+        onClose={() => setRecorderOpen(false)}
+        onAttachment={(a) => callbacks.current.onAttachment(a)}
+        onError={(m) => callbacks.current.onError(m)}
+      />
       {suggest && (
         <LinkSuggestions
           state={suggest}
