@@ -4,6 +4,7 @@
   "private": true,
   "description": "Carnet de recherche numérique personnel, local",
   "author": "Ny Hasina VAGNO",
+  "license": "MIT",
   "main": "electron/main.mjs",
   "scripts": {
     "dev": "next dev",
